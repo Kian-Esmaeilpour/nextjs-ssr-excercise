@@ -24,7 +24,9 @@ export default async function page({
 }: {
   searchParams: { page?: string };
 }) {
-  const currentPage = searchParams.page ? parseInt(searchParams.page) : 1;
+  const params = await searchParams;
+  const currentPage = params?.page ? parseInt(params?.page) : 1;
+
   // json-server doesn't add a pagination decorator for you, so here you go
 
   const TOTAL_LENGTH = 50626;
@@ -60,8 +62,19 @@ export default async function page({
         </TableHeader>
         <TableBody>
           {accidents?.map((accident) => (
-            <TableRow key={accident.id}>
-              <TableCell>{accident.id}</TableCell>
+            <TableRow
+              key={accident.id}
+              className="cursor-pointer hover:bg-muted/50"
+            >
+              <TableCell>
+                <Link
+                  key={accident.id}
+                  href={`/${accident.id}`}
+                  prefetch={true}
+                >
+                  {accident.id}
+                </Link>
+              </TableCell>
               <TableCell>
                 {accident.location} ({accident.borough})
               </TableCell>
@@ -78,7 +91,10 @@ export default async function page({
         <PaginationContent>
           {!isFirstPage && (
             <PaginationItem>
-              <PaginationPrevious href={`?page=${currentPage - 1}`} />
+              <PaginationPrevious
+                href={`?page=${currentPage - 1}`}
+                prefetch={true}
+              />
             </PaginationItem>
           )}
 
@@ -86,12 +102,12 @@ export default async function page({
             <PaginationLink aria-disabled>{currentPage}</PaginationLink>
           </PaginationItem>
           <PaginationItem>
-            <PaginationLink href={`?page=${currentPage + 1}`}>
+            <PaginationLink href={`?page=${currentPage + 1}`} prefetch={true}>
               {currentPage + 1}
             </PaginationLink>
           </PaginationItem>
           <PaginationItem>
-            <PaginationLink href={`?page=${currentPage + 2}`}>
+            <PaginationLink href={`?page=${currentPage + 2}`} prefetch={true}>
               {currentPage + 2}
             </PaginationLink>
           </PaginationItem>
@@ -100,7 +116,10 @@ export default async function page({
           </PaginationItem>
           {!isLastPage && (
             <PaginationItem>
-              <PaginationNext href={`?page=${currentPage + 1}`} />
+              <PaginationNext
+                href={`?page=${currentPage + 1}`}
+                prefetch={true}
+              />
             </PaginationItem>
           )}
         </PaginationContent>
