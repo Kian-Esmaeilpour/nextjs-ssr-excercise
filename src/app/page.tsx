@@ -3,6 +3,9 @@ import {
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from "@/components/ui/pagination";
 import {
   Table,
@@ -15,14 +18,26 @@ import {
 import { AccidentStat } from "@/types/accident-stat";
 import Link from "next/link";
 import { paginateByCurrentPage } from "../utils/paginate-by-current-page";
-// json-server doesn't add a pagination decorator for you, so here you go
-const TOTAL_LENGTH = 50626;
-const LIMIT = 15;
 
-const pageNumbers = Array.from(
-  { length: TOTAL_LENGTH / LIMIT },
-  (_, i) => i + 1
-);
+export default async function page({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
+  const currentPage = searchParams.page ? parseInt(searchParams.page) : 1;
+  // json-server doesn't add a pagination decorator for you, so here you go
+
+  const TOTAL_LENGTH = 50626;
+  const LIMIT = 15;
+  const response = await fetch(
+    `http://localhost:3030/accidents-stat?_page=${currentPage}&_limit=${LIMIT}`
+  );
+
+  const accidents = (await response.json()) as AccidentStat[];
+  const pageNumbers = Array.from(
+    { length: TOTAL_LENGTH / LIMIT },
+    (_, i) => i + 1
+  );
   const { isFirstPage, isLastPage, paginationNumbers } = paginateByCurrentPage(
     currentPage,
     pageNumbers
@@ -44,7 +59,7 @@ const pageNumbers = Array.from(
           </TableRow>
         </TableHeader>
         <TableBody>
-          {accidents.map((accident) => (
+          {accidents?.map((accident) => (
             <TableRow key={accident.id}>
               <TableCell>{accident.id}</TableCell>
               <TableCell>
@@ -58,10 +73,38 @@ const pageNumbers = Array.from(
         </TableBody>
       </Table>
 
-      <p>
-        Page 1 of 3375
-      </p>
-      {/* <Pagination></Pagination */}
+      <p>Page 1 of 3375</p>
+      <Pagination>
+        <PaginationContent>
+          {!isFirstPage && (
+            <PaginationItem>
+              <PaginationPrevious href={`?page=${currentPage - 1}`} />
+            </PaginationItem>
+          )}
+
+          <PaginationItem>
+            <PaginationLink aria-disabled>{currentPage}</PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href={`?page=${currentPage + 1}`}>
+              {currentPage + 1}
+            </PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href={`?page=${currentPage + 2}`}>
+              {currentPage + 2}
+            </PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+          {!isLastPage && (
+            <PaginationItem>
+              <PaginationNext href={`?page=${currentPage + 1}`} />
+            </PaginationItem>
+          )}
+        </PaginationContent>
+      </Pagination>
     </main>
   );
 }
